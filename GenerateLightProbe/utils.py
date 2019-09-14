@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+from DaeModel.loadmodel import loadModel
 
 
 def rotateImg(img, ty):
@@ -28,3 +29,23 @@ def rotateImg(img, ty):
     outImg = tf.stack([r, g, b], axis=1)
 
     return outImg
+
+
+def getfeature(datapath, modelpath):
+    '''
+    extract the feature of thr image of image dataset
+    (the method has not tested,you may get error when you load the .npy file)
+    :param datapath: image dataset path
+    :param modelpath: model weighrs path
+    :return: the feature mean of images
+    '''
+    featureSavePath = 'feature'
+    inputdata = tf.placeholder(tf.float32, [None, 32, 128, 3])
+    imagedata = np.load(datapath)
+    model = loadModel(modelpath)
+    features = tf.reduce_mean(model.encoder(inputdata), axis=0)
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+        # if your gpu memary is not enough,you can use a cycle language to get the features mean of all images
+        features = sess.run(features, feed_dict={inputdata: imagedata})
+        np.save(featureSavePath,features)
