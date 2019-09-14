@@ -48,4 +48,19 @@ def getfeature(datapath, modelpath):
         sess.run(tf.global_variables_initializer())
         # if your gpu memary is not enough,you can use a cycle language to get the features mean of all images
         features = sess.run(features, feed_dict={inputdata: imagedata})
-        np.save(featureSavePath,features)
+        np.save(featureSavePath, features)
+
+
+def shadingmodel(img, faceHdrPath, tmatrixPath):
+    I = tf.reshape(img, [-1, 3])
+    Sture = tf.constant(np.load(faceHdrPath), dtype=tf.float32)
+    tmatrix = tf.constant(np.load(tmatrixPath), dtype=tf.float32)
+    r_face = tf.Variable(0.1)
+    g_face = tf.Variable(0.1)
+    b_face = tf.Variable(0.1)
+    r_s = tf.matmul(tmatrix, I[:, 0, tf.newaxis]) * r_face
+    g_s = tf.matmul(tmatrix, I[:, 1, tf.newaxis]) * g_face
+    b_s = tf.matmul(tmatrix, I[:, 2, tf.newaxis]) * b_face
+    return tf.sqrt(tf.square(r_s - Sture[:, 0, tf.newaxis])) + \
+           tf.sqrt(tf.square(g_s - Sture[:, 1, tf.newaxis])) + \
+           tf.sqrt(tf.square(b_s - Sture[:, 2, tf.newaxis]))
